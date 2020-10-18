@@ -50,9 +50,10 @@ def get_games_query():
 
 def handle_response(response):
     ret_vals = {}
-    for k, v in response.json()["data"][0].items():
-        if k == 'game_id' or k == 'viewer_count' or k == 'started_at' or k == 'language' or k == 'user_name':
-            ret_vals[k] = v
+    if len(response.json()["data"]) > 0:
+        for k, v in response.json()["data"][0].items():
+            if k == 'game_id' or k == 'viewer_count' or k == 'started_at' or k == 'language' or k == 'user_name':
+                ret_vals[k] = v
     return ret_vals
 
 
@@ -115,20 +116,21 @@ def writeLiveStreamDataToDB(user_login, user_name, game_id, viewer_count, starte
 if __name__ == "__main__":
     
     # users to fetch live stream data from
-    user_login = 'SwaggerSouls'
+    user_logins = ['DansGaming', 'BobRoss', 'JoinTime', 'BeyondTheSummit', 'ESL_DOTA2', 
+                    'RiotGames', 'Destroy', 'Monstercat', 'Whippy', 'marymaybe', 'Ponce']
 
-    # obtain auth token
-    access_token = get_twitch_auth()
+    for user_login in user_logins:
+        # obtain auth token
+        access_token = get_twitch_auth()
 
-    # fetch stream data from api
-    query = get_user_streams_query(user_login)
-    response = get_response(query, access_token)
+        # fetch stream data from api
+        query = get_user_streams_query(user_login)
+        response = get_response(query, access_token)
 
-    # print_response(response)
-
-    # TODO: Parse response to obtain stream data values
-    ret_vals = handle_response(response)
-    writeLiveStreamDataToDB(user_login, ret_vals['user_name'], ret_vals['game_id'],
-                                ret_vals['viewer_count'], ret_vals['started_at'], ret_vals['language'])
+        # save data to azure db
+        ret_vals = handle_response(response)
+        if (len(ret_vals) > 0):
+            writeLiveStreamDataToDB(user_login, ret_vals['user_name'], ret_vals['game_id'],
+                                    ret_vals['viewer_count'], ret_vals['started_at'], ret_vals['language'])
 
     
