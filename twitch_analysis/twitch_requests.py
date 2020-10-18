@@ -27,15 +27,6 @@ def get_twitch_auth():
     "Client-ID": CLIENT_ID,
     "Authorization": "Bearer {}".format(response.json()["access_token"])
     }
-    print(response.json()["access_token"])
-    #response_valid = requests.post("https://id.twitch.tv/oauth2/validate", headers=HEADERS)
-
-    print(response.json())
-    print(HEADERS)
-
-    nowApiTest = requests.get("https://api.twitch.tv/helix/games/top", headers=HEADERS)
-    print(nowApiTest.json()["data"][0]["name"])
-
     return response.json()["access_token"]
 
 def get_response(query, token):
@@ -110,7 +101,8 @@ def writeLiveStreamDataToDB(user_login, user_name, game_id, viewer_count, starte
         cursor.execute(create_table)
     
     # write live stream data to table
-    insert_data = "INSERT INTO {} (timestamp, user_name, game_id, viewer_count, started_at, language) VALUES ({}, '{}', {}, {}, '{}', '{}');".format(table_name, time.time(), user_name, game_id, viewer_count, started_at, language)
+    insert_data = ("INSERT INTO {} (timestamp, user_name, game_id, viewer_count, started_at, language) VALUES \
+        ({}, '{}', {}, {}, '{}', '{}');").format(table_name, time.time(), user_name, game_id, viewer_count, started_at, language)
 
     cursor.execute(insert_data)
 
@@ -136,6 +128,7 @@ if __name__ == "__main__":
 
     # TODO: Parse response to obtain stream data values
     ret_vals = handle_response(response)
-    writeLiveStreamDataToDB(user_login, ret_vals['user_name'], ret_vals['game_id'], ret_vals['viewer_count'], ret_vals['started_at'], ret_vals['language'])
+    writeLiveStreamDataToDB(user_login, ret_vals['user_name'], ret_vals['game_id'],
+                                ret_vals['viewer_count'], ret_vals['started_at'], ret_vals['language'])
 
     
