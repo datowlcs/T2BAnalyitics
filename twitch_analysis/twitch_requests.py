@@ -60,7 +60,7 @@ def get_games_query():
 def handle_response(response):
     ret_vals = {}
     for k, v in response.json()["data"][0].items():
-        if k == 'game_id' or k == 'viewer_count' or k == 'started_at' or k == 'language':
+        if k == 'game_id' or k == 'viewer_count' or k == 'started_at' or k == 'language' or k == 'user_name':
             ret_vals[k] = v
     return ret_vals
 
@@ -70,7 +70,7 @@ def print_response(response):
         print("{}: {}".format(k, v))
 
 
-def writeLiveStreamDataToDB(user_login, game_id, viewer_count, started_at, language):
+def writeLiveStreamDataToDB(user_login, user_name, game_id, viewer_count, started_at, language):
     # DB variables
     host = 't2banalyticsserver.postgres.database.azure.com'
     dbname = 'streamerliveanalytics'
@@ -86,13 +86,21 @@ def writeLiveStreamDataToDB(user_login, game_id, viewer_count, started_at, langu
     cursor = conn.cursor()
 
     # check if streamer table already exists
-    cursor.execute("select * from information_schema.tables where table_name=%s", (table_name,))
+    stmt = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';"
+    cursor.execute(stmt)
+    results = cursor.fetchall()
+    exists = False
+    for item in results:
+        if item[0] == table_name.lower():
+            exists = True
+    
 
     # create table for streamer if none exist
-    if not bool(cursor.rowcount):
+    if not exists:
         create_table = """
         CREATE TABLE {} (
         timestamp INTEGER PRIMARY KEY,
+        user_name VARCHAR(32) NOT NULL,
         game_id INTEGER NOT NULL,
         viewer_count INTEGER,
         started_at VARCHAR(32) NOT NULL,
@@ -102,7 +110,7 @@ def writeLiveStreamDataToDB(user_login, game_id, viewer_count, started_at, langu
         cursor.execute(create_table)
     
     # write live stream data to table
-    insert_data = "INSERT INTO {} (timestamp, game_id, viewer_count, started_at, language) VALUES ({}, {}, {}, '{}', '{}');".format(table_name, time.time(), game_id, viewer_count, started_at, language)
+    insert_data = "INSERT INTO {} (timestamp, user_name, game_id, viewer_count, started_at, language) VALUES ({}, '{}', {}, {}, '{}', '{}');".format(table_name, time.time(), user_name, game_id, viewer_count, started_at, language)
 
     cursor.execute(insert_data)
 
@@ -115,7 +123,7 @@ def writeLiveStreamDataToDB(user_login, game_id, viewer_count, started_at, langu
 if __name__ == "__main__":
     
     # users to fetch live stream data from
-    user_login = 'xQcOW'
+    user_login = 'SwaggerSouls'
 
     # obtain auth token
     access_token = get_twitch_auth()
@@ -124,10 +132,10 @@ if __name__ == "__main__":
     query = get_user_streams_query(user_login)
     response = get_response(query, access_token)
 
-    print_response(response)
+    # print_response(response)
 
     # TODO: Parse response to obtain stream data values
     ret_vals = handle_response(response)
-    writeLiveStreamDataToDB(user_login, ret_vals['game_id'], ret_vals['viewer_count'], ret_vals['started_at'], ret_vals['language'])
+    writeLiveStreamDataToDB(user_login, ret_vals['user_name'], ret_vals['game_id'], ret_vals['viewer_count'], ret_vals['started_at'], ret_vals['language'])
 
     
