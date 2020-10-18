@@ -6,8 +6,8 @@ import time
 
 # API variables
 BASE_URL = 'https://api.twitch.tv/helix/'
-CLIENT_ID = 'ns8jo098eiow520zuf3ltf7x14erc0'
-CLIENT_SECRET = '68wkijs855octdmp6mfzqk8ygztiqz'
+CLIENT_ID = 'REDACTED'
+CLIENT_SECRET = 'REDACTED'
 INDENT = 2
 AUTH_URL = 'https://id.twitch.tv/oauth2/token'
 
