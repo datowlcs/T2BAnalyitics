@@ -123,7 +123,7 @@ if __name__ == "__main__":
         # obtain auth token
         access_token = get_twitch_auth()
 
-        # fetch stream data from api
+        # # fetch stream data from api
         query = get_user_streams_query(user_login)
         response = get_response(query, access_token)
 
